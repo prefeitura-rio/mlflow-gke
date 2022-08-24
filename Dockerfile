@@ -12,11 +12,7 @@ ENV CONDA_DIR /opt/conda
 ENV PATH $CONDA_DIR/bin:$PATH
 RUN curl -O https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh && \
     /bin/bash Miniconda3-latest-Linux-x86_64.sh -b -p $CONDA_DIR && \
-    rm Miniconda3-latest-Linux-x86_64.sh && \
-    $CONDA_DIR/bin/conda clean -tipsy && \
-    ln -s $CONDA_DIR/etc/profile.d/conda.sh /etc/profile.d/conda.sh && \
-    echo ". $CONDA_DIR/etc/profile.d/conda.sh" >> ~/.bashrc && \
-    echo "conda activate base" >> ~/.bashrc
+    rm Miniconda3-latest-Linux-x86_64.sh
 
 # Setup virtual environment
 ENV VENV=/.venv/myenv
@@ -25,7 +21,7 @@ ARG MLFLOW_VERSION=1.28.0
 RUN python3 -m venv ${VENV} && \
     mkdir -p $VENV/src && \
     python -m pip install --no-cache-dir --prefer-binary -U pip && \
-    python -m pip install --no-cache-dir --prefer-binary psycopg2 mlflow==${MLFLOW_VERSION} google-cloud google-cloud-storage 
+    python -m pip install --no-cache-dir --prefer-binary psycopg2 mlflow==${MLFLOW_VERSION} google-cloud google-cloud-storage scikit-learn xgboost
 
 # Mount the credentials json file under the following directory
 WORKDIR /workdir/
