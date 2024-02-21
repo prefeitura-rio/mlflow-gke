@@ -1,4 +1,4 @@
-ARG PYTHON_VERSION=3.9
+ARG PYTHON_VERSION=3.10
 FROM python:${PYTHON_VERSION}
 
 # Install dependencies
@@ -17,7 +17,7 @@ RUN curl -O https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.s
 # Setup virtual environment
 ENV VENV=/.venv/myenv
 ENV PATH=$VENV/bin:$PATH
-ARG MLFLOW_VERSION=1.28.0
+ARG MLFLOW_VERSION=2.10.2
 RUN python3 -m venv ${VENV} && \
     mkdir -p $VENV/src && \
     python -m pip install --no-cache-dir --prefer-binary -U pip && \

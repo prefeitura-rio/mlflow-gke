@@ -1,31 +1,42 @@
-name: Build and push Docker image
+name: Build Docker Image
 
 on:
   push:
     branches:
-      - master
-
-env:
-  GH_PAT: ${{ secrets.GH_PAT }}
-  IMAGE_NAME: ghcr.io/prefeitura-rio/mlflow-gke
-
+      - main
 
 jobs:
-  build-container:
-    name: Build and publish (Python ${{ matrix.python-version }}, MLflow v${{ matrix.mlflow-version }})
+  release-docker:
+    name: Docker - Release image (Python ${{ matrix.python-version }}, MLflow v${{ matrix.mlflow-version }})
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [3.8, 3.9]
-        mlflow-version: [1.28.0]
+        python-version: [3.9, 3.10, 3.11]
+        mlflow-version: [2.10.2]
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
-      - name: Build and publish image
-        run: |
-          docker build --build-arg PYTHON_VERSION=${{ matrix.python-version }} --build-arg MLFLOW_VERSION=${{ matrix.mlflow-version }} -t $IMAGE_NAME:$GITHUB_SHA-python${{ matrix.python-version }}-mlflow${{ matrix.mlflow-version }} .
-          docker build --build-arg PYTHON_VERSION=${{ matrix.python-version }} --build-arg MLFLOW_VERSION=${{ matrix.mlflow-version }} -t $IMAGE_NAME:latest-python${{ matrix.python-version }}-mlflow${{ matrix.mlflow-version }} .
-          echo $GH_PAT | docker login ghcr.io -u gabriel-milan --password-stdin
-          docker push $IMAGE_NAME:$GITHUB_SHA-python${{ matrix.python-version }}-mlflow${{ matrix.mlflow-version }}
-          docker push $IMAGE_NAME:latest-python${{ matrix.python-version }}-mlflow${{ matrix.mlflow-version }}
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v1
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push image
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}:${{ github.sha }}-python${{ matrix.python-version }}-mlflow${{ matrix.mlflow-version }}
+            ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}:latest-python${{ matrix.python-version }}-mlflow${{ matrix.mlflow-version }}
+          labels: |
+            org.opencontainers.image.source=${{ github.event.repository.html_url }}
+            org.opencontainers.image.revision=${{ github.sha }}
+          build-args: |
+            BUILDKIT_INLINE_CACHE=1
+            PYTHON_VERSION=${{ matrix.python-version }}
+            MLFLOW_VERSION=${{ matrix.mlflow-version }}
