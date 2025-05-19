@@ -21,7 +21,7 @@ ARG MLFLOW_VERSION=2.10.2
 RUN python3 -m venv ${VENV} && \
     mkdir -p $VENV/src && \
     python -m pip install --no-cache-dir --prefer-binary -U pip && \
-    python -m pip install --no-cache-dir --prefer-binary psycopg2 mlflow==${MLFLOW_VERSION} google-cloud google-cloud-storage scikit-learn xgboost
+    python -m pip install --no-cache-dir --prefer-binary psycopg2 mlflow[auth]==${MLFLOW_VERSION} google-cloud google-cloud-storage scikit-learn xgboost
 
 # Mount the credentials json file under the following directory
 WORKDIR /workdir/
